@@ -1,0 +1,13 @@
+version: '3'
+services:
+  api:
+    hostname: api
+    build: .
+    command: go run cmd/main.go
+    environment:
+      LINEBOT_CHANNEL_SECRET: "YOUR LINEBOT CHANNEL SECRET"
+      LINEBOT_CHANNEL_ACCESS_TOKEN: "YOUR LINEBOT CHANNEL ACCESS TOKEN"
+    volumes:
+    - ./:/go/src/linebot_api
+    ports:
+    - 8080:8080
