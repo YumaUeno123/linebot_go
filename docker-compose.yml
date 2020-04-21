@@ -7,6 +7,7 @@ services:
     environment:
       LINEBOT_CHANNEL_SECRET: "YOUR LINEBOT CHANNEL SECRET"
       LINEBOT_CHANNEL_ACCESS_TOKEN: "YOUR LINEBOT CHANNEL ACCESS TOKEN"
+      RAKUTEN_APPLICATION_ID: "YOUR RAKUTEN APPLICATION ID"
     volumes:
     - ./:/go/src/linebot_api
     ports:
