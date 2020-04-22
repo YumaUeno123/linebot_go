@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -86,6 +85,7 @@ func main() {
 	}
 
 	http.HandleFunc("/callback", func(w http.ResponseWriter, req *http.Request) {
+		fmt.Println("run callback func")
 		events, err := bot.ParseRequest(req)
 		if err != nil {
 			if err == linebot.ErrInvalidSignature {
@@ -105,23 +105,24 @@ func main() {
 
 					resp, err := http.Get(u)
 					if err != nil {
+						fmt.Println("err is http get")
 						log.Print(err)
 					}
 					defer resp.Body.Close()
 
-					body, err := ioutil.ReadAll(resp.Body)
-					if err != nil {
-						log.Print(err)
-					}
-
 					var responseItems RakutenAPIResponse
-					if err := json.Unmarshal(body, &responseItems); err != nil {
+					if err := json.NewDecoder(resp.Body).Decode(&responseItems); err != nil {
+						fmt.Println("err is json decode")
 						return
 					}
 
-					clientResp := generateCarouselResponse(&responseItems)
+					var sendMessage []linebot.SendingMessage
+					searchWord := linebot.NewTextMessage("楽天市場検索結果")
+					clientResp := generateCarouselResponse(message.Text, &responseItems)
+					sendMessage = append(sendMessage, searchWord)
+					sendMessage = append(sendMessage, clientResp)
 
-					if _, err := bot.ReplyMessage(event.ReplyToken, clientResp).Do(); err != nil {
+					if _, err := bot.ReplyMessage(event.ReplyToken, sendMessage...).Do(); err != nil {
 						log.Print(err)
 					}
 
@@ -150,13 +151,15 @@ func generateRequestUrl(keyword string) string {
 	q.Set("keyword", keyword)
 	q.Set("applicationId", os.Getenv(rakutenApplicationID))
 	u.RawQuery = q.Encode()
+	fmt.Println(u.String())
 
 	return u.String()
 }
 
-func generateCarouselResponse(items *RakutenAPIResponse) *linebot.TemplateMessage {
+func generateCarouselResponse(keyword string, items *RakutenAPIResponse) *linebot.TemplateMessage {
+	fmt.Println(items)
 	resp := linebot.NewTemplateMessage(
-		"取得データ一覧",
+		keyword+"の検索結果",
 		linebot.NewCarouselTemplate(
 			createCarousel(items)...,
 		),
