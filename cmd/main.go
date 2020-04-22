@@ -178,8 +178,8 @@ func createCarousel(items *RakutenAPIResponse) []*linebot.CarouselColumn {
 
 		var title string
 
-		if len(item.Item.ItemName) > 40 {
-			title = item.Item.ItemName[:40] + "..."
+		if len(item.Item.ItemName) > 37 {
+			title = item.Item.ItemName[:37] + "..."
 		} else {
 			title = item.Item.ItemName
 		}
