@@ -85,7 +85,6 @@ func main() {
 	}
 
 	http.HandleFunc("/callback", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Println("run callback func")
 		events, err := bot.ParseRequest(req)
 		if err != nil {
 			if err == linebot.ErrInvalidSignature {
@@ -105,22 +104,24 @@ func main() {
 
 					resp, err := http.Get(u)
 					if err != nil {
-						fmt.Println("err is http get")
 						log.Print(err)
 					}
 					defer resp.Body.Close()
 
 					var responseItems RakutenAPIResponse
 					if err := json.NewDecoder(resp.Body).Decode(&responseItems); err != nil {
-						fmt.Println("err is json decode")
+						log.Print(err)
 						return
 					}
 
 					var sendMessage []linebot.SendingMessage
-					searchWord := linebot.NewTextMessage("楽天市場検索結果")
-					clientResp := generateCarouselResponse(message.Text, &responseItems)
-					sendMessage = append(sendMessage, searchWord)
-					sendMessage = append(sendMessage, clientResp)
+					sendMessage = append(sendMessage, linebot.NewTextMessage("楽天市場検索結果"))
+					clientResp, err := generateCarouselResponse(message.Text, &responseItems)
+					if err != nil {
+						sendMessage = append(sendMessage, linebot.NewTextMessage("検索結果がありませんでした"))
+					} else {
+						sendMessage = append(sendMessage, clientResp)
+					}
 
 					if _, err := bot.ReplyMessage(event.ReplyToken, sendMessage...).Do(); err != nil {
 						log.Print(err)
@@ -156,20 +157,28 @@ func generateRequestUrl(keyword string) string {
 	return u.String()
 }
 
-func generateCarouselResponse(keyword string, items *RakutenAPIResponse) *linebot.TemplateMessage {
-	fmt.Println(items)
+func generateCarouselResponse(keyword string, items *RakutenAPIResponse) (*linebot.TemplateMessage, error) {
+	carouselItems := createCarousel(items)
+	if len(carouselItems) == 0 {
+		return nil, fmt.Errorf("no data")
+	}
+
 	resp := linebot.NewTemplateMessage(
 		keyword+"の検索結果",
 		linebot.NewCarouselTemplate(
-			createCarousel(items)...,
+			carouselItems...,
 		),
 	)
 
-	return resp
+	return resp, nil
 }
 
 func createCarousel(items *RakutenAPIResponse) []*linebot.CarouselColumn {
 	var resp []*linebot.CarouselColumn
+
+	if len(items.Items) == 0 {
+		return resp
+	}
 
 	for index, item := range items.Items {
 		if index >= 10 {
