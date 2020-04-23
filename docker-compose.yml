@@ -2,12 +2,13 @@ version: '3'
 services:
   api:
     hostname: api
-    build: .
+    image: golang:1.14.0-alpine
     command: go run cmd/main.go
     environment:
       LINEBOT_CHANNEL_SECRET: "YOUR LINEBOT CHANNEL SECRET"
       LINEBOT_CHANNEL_ACCESS_TOKEN: "YOUR LINEBOT CHANNEL ACCESS TOKEN"
       RAKUTEN_APPLICATION_ID: "YOUR RAKUTEN APPLICATION ID"
+    working_dir: '/go/src/github.com/YumaUeno123/linebot_go'
     volumes:
     - ./:/go/src/github.com/YumaUeno123/linebot_go
     ports:
