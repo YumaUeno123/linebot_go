@@ -11,5 +11,6 @@ services:
     working_dir: '/go/src/github.com/YumaUeno123/linebot_go'
     volumes:
     - ./:/go/src/github.com/YumaUeno123/linebot_go
+    - ${LINEBOT_GO_PATH}/pkg:/go/pkg
     ports:
     - 8080:8080
