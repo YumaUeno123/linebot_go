@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/YumaUeno123/linebot_go/internal/app/controller"
+
 	"github.com/dustin/go-humanize"
 	"github.com/line/line-bot-sdk-go/linebot"
 )
@@ -73,6 +75,8 @@ type ImageUrl struct {
 }
 
 func main() {
+	controller.Health()
+
 	fmt.Println("run main.go")
 
 	bot, err := linebot.New(
