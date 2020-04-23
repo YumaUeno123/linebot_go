@@ -29,10 +29,27 @@ jobs:
       - image: circleci/golang:1.14.0
     steps:
       - checkout
+      - setup_remote_docker:
+            version: 18.06.0-ce
       - run:
-          name: Master を Heroku にデプロイ
+          name: "build docker image"
+          command: docker build --rm=false -t registry.heroku.com/${HEROKU_APP_NAME}/web .
+      - run:
+          name: setup heroku command
+          command: bash .circleci/setup_heroku.sh
+      - run:
+          name: heroku maintenance on
+          command: heroku maintenance:on --app ${HEROKU_APP_NAME}
+      - run:
+          name: Deploy to Heroku!!!!
           command: |
-            git push https://heroku:$HEROKU_API_KEY@git.heroku.com/$HEROKU_APP_NAME.git master
+            docker login --username=_ --password=$HEROKU_AUTH_TOKEN registry.heroku.com
+            docker push registry.heroku.com/${HEROKU_APP_NAME}/web
+            heroku container:push web --app ${HEROKU_APP_NAME}
+            heroku container:release web --app ${HEROKU_APP_NAME}
+      - run:
+          name: heroku maintenance off
+          command: heroku maintenance:off --app ${HEROKU_APP_NAME}
 
 workflows:
   version: 2

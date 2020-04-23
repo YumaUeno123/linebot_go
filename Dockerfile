@@ -18,6 +18,7 @@ RUN go mod download
 RUN make install-tools
 
 # go build
+#RUN GOOS=linux GOARCH=amd64 go build -o main cmd/main.go
 RUN go build -o main cmd/main.go
 
 #exec container image
@@ -33,4 +34,4 @@ RUN apk --no-cache add tzdata && \
 
 WORKDIR /cmd
 COPY --from=builder /go/src/github.com/YumaUeno123/linebot_go/main .
-#CMD ["go", "run", "cmd/main.go"]
+CMD /cmd/main -port $PORT

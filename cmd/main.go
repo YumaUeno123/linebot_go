@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,7 +16,6 @@ import (
 )
 
 const (
-	port                 = "8080"
 	channelSecret        = "LINEBOT_CHANNEL_SECRET"
 	accessToken          = "LINEBOT_CHANNEL_ACCESS_TOKEN"
 	rakutenApplicationID = "RAKUTEN_APPLICATION_ID"
@@ -74,10 +74,12 @@ type ImageUrl struct {
 	ImageUrl string `json:"imageUrl"`
 }
 
-func main() {
-	controller.Health()
+var port = flag.String("port", "8080", "http port")
 
-	fmt.Println("run main.go")
+func main() {
+	flag.Parse()
+
+	controller.Health()
 
 	bot, err := linebot.New(
 		os.Getenv(channelSecret),
@@ -103,7 +105,6 @@ func main() {
 			if event.Type == linebot.EventTypeMessage {
 				switch message := event.Message.(type) {
 				case *linebot.TextMessage:
-					fmt.Println(message.Text)
 					u := generateRequestUrl(message.Text)
 
 					resp, err := http.Get(u)
@@ -141,7 +142,7 @@ func main() {
 		}
 	})
 
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	if err := http.ListenAndServe(":"+*port, nil); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -156,7 +157,6 @@ func generateRequestUrl(keyword string) string {
 	q.Set("keyword", keyword)
 	q.Set("applicationId", os.Getenv(rakutenApplicationID))
 	u.RawQuery = q.Encode()
-	fmt.Println(u.String())
 
 	return u.String()
 }
