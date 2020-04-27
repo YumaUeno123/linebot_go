@@ -43,10 +43,9 @@ func Fetch(ch chan<- []linebot.Response, keyword string) {
 	bReader := bytes.NewReader(buf)
 	reader, _ := charset.NewReaderLabel(detResult.Charset, bReader)
 
-	// TODO: 検索条件によって検索結果を取得できない時があり、最初に Find している ".s-border-bottom" では不十分かもしれない
 	doc, _ := goquery.NewDocumentFromReader(reader)
 	resp := make([]linebot.Response, 0)
-	doc.Find(".s-border-bottom").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".s-expand-height").Each(func(i int, s *goquery.Selection) {
 		if i >= MaxCarouselNum {
 			return
 		}
