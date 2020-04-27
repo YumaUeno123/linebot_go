@@ -22,7 +22,7 @@ const (
 	MaxCarouselNum       = 10
 )
 
-func Fetch(keyword string) []linebot.Response {
+func Fetch(ch chan<- []linebot.Response, keyword string) {
 	url := createURL(keyword)
 
 	getResp, err := http.Get(url)
@@ -37,16 +37,17 @@ func Fetch(keyword string) []linebot.Response {
 		log.Print(err)
 	}
 
+	resp := make([]linebot.Response, 0)
 	if len(responseItems.Items) == 0 {
-		return nil
+		ch <- resp
+		return
 	}
 
-	resp := make([]linebot.Response, 0)
 	for i := 0; i < MaxCarouselNum; i++ {
 		resp = append(resp, parse(responseItems.Items[i]))
 	}
 
-	return resp
+	ch <- resp
 }
 
 func parse(responseItem rakuten.ResponseItem) (resp linebot.Response) {

@@ -13,7 +13,20 @@ type Response struct {
 	Price   string
 }
 
-func Parse(keyword string, items []Response) (*linebotSDK.TemplateMessage, error) {
+func AddSendMessage(kind string, word string, items []Response) []linebotSDK.SendingMessage {
+	var sendMessage []linebotSDK.SendingMessage
+	sendMessage = append(sendMessage, linebotSDK.NewTextMessage(kind+"検索結果"))
+	resp, err := parse(word, items)
+	if err != nil {
+		sendMessage = append(sendMessage, linebotSDK.NewTextMessage("検索結果がありませんでした"))
+	} else {
+		sendMessage = append(sendMessage, resp)
+	}
+
+	return sendMessage
+}
+
+func parse(keyword string, items []Response) (*linebotSDK.TemplateMessage, error) {
 	carouselItems := parseToLinebotFormat(items)
 	if len(carouselItems) == 0 {
 		return nil, fmt.Errorf("no data")

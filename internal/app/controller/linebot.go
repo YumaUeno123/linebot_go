@@ -1,9 +1,12 @@
 package controller
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/YumaUeno123/linebot_go/internal/app/client/amazon"
 
 	"github.com/YumaUeno123/linebot_go/internal/app/client/rakuten"
 	"github.com/YumaUeno123/linebot_go/internal/app/server/linebot"
@@ -28,6 +31,7 @@ func LineBot() {
 	}
 
 	http.HandleFunc("/callback", func(w http.ResponseWriter, req *http.Request) {
+		fmt.Println("run request")
 		events, err := bot.ParseRequest(req)
 		if err != nil {
 			if err == linebotSDK.ErrInvalidSignature {
@@ -42,19 +46,16 @@ func LineBot() {
 			if event.Type == linebotSDK.EventTypeMessage {
 				switch message := event.Message.(type) {
 				case *linebotSDK.TextMessage:
-					// client
-					resp := rakuten.Fetch(message.Text)
+					rakutenChannel := make(chan []linebot.Response)
+					amazonChannel := make(chan []linebot.Response)
+					go rakuten.Fetch(rakutenChannel, message.Text)
+					go amazon.Fetch(amazonChannel, message.Text)
+					rakutenResp := <-rakutenChannel
+					amazonResp := <-amazonChannel
 
-					// server
 					var sendMessage []linebotSDK.SendingMessage
-					sendMessage = append(sendMessage, linebotSDK.NewTextMessage("楽天市場検索結果"))
-					clientResp, err := linebot.Parse(message.Text, resp)
-					if err != nil {
-						sendMessage = append(sendMessage, linebotSDK.NewTextMessage("検索結果がありませんでした"))
-					} else {
-						sendMessage = append(sendMessage, clientResp)
-					}
-
+					sendMessage = append(sendMessage, linebot.AddSendMessage("楽天市場", message.Text, rakutenResp)...)
+					sendMessage = append(sendMessage, linebot.AddSendMessage("amazon", message.Text, amazonResp)...)
 					if _, err := bot.ReplyMessage(event.ReplyToken, sendMessage...).Do(); err != nil {
 						log.Print(err)
 					}
