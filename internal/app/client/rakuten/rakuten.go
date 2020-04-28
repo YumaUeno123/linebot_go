@@ -43,7 +43,15 @@ func Fetch(ch chan<- []linebot.Response, keyword string) {
 		return
 	}
 
-	for i := 0; i < MaxCarouselNum; i++ {
+	var limit int
+
+	if MaxCarouselNum > len(responseItems.Items) {
+		limit = len(responseItems.Items)
+	} else {
+		limit = MaxCarouselNum
+	}
+
+	for i := 0; i < limit; i++ {
 		resp = append(resp, parse(responseItems.Items[i]))
 	}
 
