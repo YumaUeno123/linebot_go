@@ -51,17 +51,17 @@ func parseToLinebotFormat(items []Response) []*linebotSDK.CarouselColumn {
 
 	for _, v := range items {
 		var title string
-		// char 40 を超えると linebot の仕様上使えないっぽい
-		if len(v.Title) > 37 {
-			title = v.Title[:37] + "..."
+		// text の箇所は char 60 を超えると linebot の仕様上使えないっぽい
+		if len(v.Title) > 57 {
+			title = v.Title[:57] + "..."
 		} else {
 			title = v.Title
 		}
 
 		resp = append(resp, linebotSDK.NewCarouselColumn(
 			v.Image,
-			title,
 			v.Price,
+			title,
 			linebotSDK.NewURIAction("商品ページ", v.LinkURL),
 		))
 	}
