@@ -56,7 +56,11 @@ func Fetch(ch chan<- []linebot.Response, keyword string) {
 
 		_resp := linebot.Response{}
 		_resp.Title = title
-		_resp.Price = price + "円"
+		if price == "" {
+			_resp.Price = "商品ページからご確認ください"
+		} else {
+			_resp.Price = price + "円"
+		}
 		_resp.LinkURL = urlScheme + "://" + amazonUrlHost + linkURL
 		_resp.Image = image
 
