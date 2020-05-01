@@ -3,7 +3,7 @@ package linebot
 import (
 	"fmt"
 
-	linebotSDK "github.com/line/line-bot-sdk-go/linebot"
+	lineBotSDK "github.com/line/line-bot-sdk-go/linebot"
 )
 
 type Response struct {
@@ -13,12 +13,12 @@ type Response struct {
 	Price   string
 }
 
-func AddSendMessage(kind string, word string, items []Response) []linebotSDK.SendingMessage {
-	var sendMessage []linebotSDK.SendingMessage
-	sendMessage = append(sendMessage, linebotSDK.NewTextMessage(kind+"検索結果"))
-	resp, err := parse(word, items)
+func AddSendMessage(kind string, word string, items []Response) []lineBotSDK.SendingMessage {
+	var sendMessage []lineBotSDK.SendingMessage
+	sendMessage = append(sendMessage, lineBotSDK.NewTextMessage(kind+"検索結果"))
+	resp, err := parse(kind, word, items)
 	if err != nil {
-		sendMessage = append(sendMessage, linebotSDK.NewTextMessage("検索結果がありませんでした"))
+		sendMessage = append(sendMessage, lineBotSDK.NewTextMessage("検索結果がありませんでした"))
 	} else {
 		sendMessage = append(sendMessage, resp)
 	}
@@ -26,15 +26,15 @@ func AddSendMessage(kind string, word string, items []Response) []linebotSDK.Sen
 	return sendMessage
 }
 
-func parse(keyword string, items []Response) (*linebotSDK.TemplateMessage, error) {
-	carouselItems := parseToLinebotFormat(items)
+func parse(kind string, keyword string, items []Response) (*lineBotSDK.TemplateMessage, error) {
+	carouselItems := parseToLineBotFormat(kind, items)
 	if len(carouselItems) == 0 {
 		return nil, fmt.Errorf("no data")
 	}
 
-	resp := linebotSDK.NewTemplateMessage(
+	resp := lineBotSDK.NewTemplateMessage(
 		keyword+"の検索結果",
-		linebotSDK.NewCarouselTemplate(
+		lineBotSDK.NewCarouselTemplate(
 			carouselItems...,
 		),
 	)
@@ -42,8 +42,8 @@ func parse(keyword string, items []Response) (*linebotSDK.TemplateMessage, error
 	return resp, nil
 }
 
-func parseToLinebotFormat(items []Response) []*linebotSDK.CarouselColumn {
-	var resp []*linebotSDK.CarouselColumn
+func parseToLineBotFormat(kind string, items []Response) []*lineBotSDK.CarouselColumn {
+	var resp []*lineBotSDK.CarouselColumn
 
 	if items == nil {
 		return resp
@@ -51,18 +51,34 @@ func parseToLinebotFormat(items []Response) []*linebotSDK.CarouselColumn {
 
 	for _, v := range items {
 		var title string
-		// text の箇所は char 60 を超えると linebot の仕様上使えないっぽい
+		// text の箇所は char 60 を超えると lineBot の仕様上使えないっぽい
 		if len(v.Title) > 57 {
 			title = v.Title[:57] + "..."
 		} else {
 			title = v.Title
 		}
 
-		resp = append(resp, linebotSDK.NewCarouselColumn(
+		// url の長さは char 1000 を超えると lineBot の仕様上使えないっぽい
+		var label string
+		var url string
+		if len(v.LinkURL) > 1000 {
+			if kind == "楽天市場" {
+				label = "楽天市場で確認"
+				url = "https://www.rakuten.co.jp/"
+			} else {
+				label = "Amazonで確認"
+				url = "https://www.amazon.co.jp/"
+			}
+		} else {
+			label = "商品ページ"
+			url = v.LinkURL
+		}
+
+		resp = append(resp, lineBotSDK.NewCarouselColumn(
 			v.Image,
 			v.Price,
 			title,
-			linebotSDK.NewURIAction("商品ページ", v.LinkURL),
+			lineBotSDK.NewURIAction(label, url),
 		))
 	}
 
