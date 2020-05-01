@@ -5,13 +5,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
+	lineBotSDK "github.com/line/line-bot-sdk-go/linebot"
+
+	"github.com/YumaUeno123/linebot_go/internal/app/client"
 	"github.com/YumaUeno123/linebot_go/internal/app/client/amazon"
-
 	"github.com/YumaUeno123/linebot_go/internal/app/client/rakuten"
 	"github.com/YumaUeno123/linebot_go/internal/app/server/linebot"
-
-	linebotSDK "github.com/line/line-bot-sdk-go/linebot"
 )
 
 const (
@@ -20,7 +21,7 @@ const (
 )
 
 func LineBot() {
-	bot, err := linebotSDK.New(
+	bot, err := lineBotSDK.New(
 		os.Getenv(channelSecret),
 		os.Getenv(accessToken),
 	)
@@ -30,11 +31,16 @@ func LineBot() {
 		return
 	}
 
+	rakutenClient := rakuten.New("楽天市場")
+	amazonClient := amazon.New("Amazon")
+
+	clients := []client.Client{rakutenClient, amazonClient}
+
 	http.HandleFunc("/callback", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Println("run request")
 		events, err := bot.ParseRequest(req)
 		if err != nil {
-			if err == linebotSDK.ErrInvalidSignature {
+			if err == lineBotSDK.ErrInvalidSignature {
 				w.WriteHeader(400)
 			} else {
 				w.WriteHeader(500)
@@ -43,26 +49,29 @@ func LineBot() {
 		}
 
 		for _, event := range events {
-			if event.Type == linebotSDK.EventTypeMessage {
+			if event.Type == lineBotSDK.EventTypeMessage {
 				switch message := event.Message.(type) {
-				case *linebotSDK.TextMessage:
-					rakutenChannel := make(chan []linebot.Response)
-					amazonChannel := make(chan []linebot.Response)
-					go rakuten.Fetch(rakutenChannel, message.Text)
-					go amazon.Fetch(amazonChannel, message.Text)
-					rakutenResp := <-rakutenChannel
-					amazonResp := <-amazonChannel
+				case *lineBotSDK.TextMessage:
+					var sendMessage []lineBotSDK.SendingMessage
 
-					var sendMessage []linebotSDK.SendingMessage
-					sendMessage = append(sendMessage, linebot.AddSendMessage("楽天市場", message.Text, rakutenResp)...)
-					sendMessage = append(sendMessage, linebot.AddSendMessage("amazon", message.Text, amazonResp)...)
+					wg := &sync.WaitGroup{}
+					for _, v := range clients {
+						wg.Add(1)
+						go func(client client.Client) {
+							res := client.Fetch(message.Text)
+							sendMessage = append(sendMessage, linebot.AddSendMessage(client.GetKind(), message.Text, res)...)
+							wg.Done()
+						}(v)
+					}
+					wg.Wait()
+
 					if _, err := bot.ReplyMessage(event.ReplyToken, sendMessage...).Do(); err != nil {
 						log.Print(err)
 					}
 
 				default:
 					replyMessage := "検索内容をテキストで入力してください"
-					if _, err := bot.ReplyMessage(event.ReplyToken, linebotSDK.NewTextMessage(replyMessage)).Do(); err != nil {
+					if _, err := bot.ReplyMessage(event.ReplyToken, lineBotSDK.NewTextMessage(replyMessage)).Do(); err != nil {
 						log.Print(err)
 					}
 				}

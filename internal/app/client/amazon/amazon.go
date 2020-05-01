@@ -8,30 +8,44 @@ import (
 	"net/url"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/YumaUeno123/linebot_go/internal/app/server/linebot"
 	"github.com/saintfish/chardet"
 	"golang.org/x/net/html/charset"
+
+	"github.com/YumaUeno123/linebot_go/internal/app/client"
+	"github.com/YumaUeno123/linebot_go/internal/app/server/linebot"
 )
 
 const (
-	urlScheme      = "https"
-	amazonUrlHost  = "www.amazon.co.jp"
-	MaxCarouselNum = 10
+	urlHost = "www.amazon.co.jp"
 )
 
-func Fetch(ch chan<- []linebot.Response, keyword string) {
-	url := createURL(keyword)
+type amazon struct {
+	kind string
+}
 
-	res, err := http.Get(url)
+func New(kind string) client.Client {
+	return &amazon{
+		kind: kind,
+	}
+}
+
+func (a *amazon) GetKind() string {
+	return a.kind
+}
+
+func (a *amazon) Fetch(keyword string) []linebot.Response {
+	u := createURL(keyword)
+
+	res, err := http.Get(u)
 	if err != nil {
 		log.Print(err)
-		return
+		return nil
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
 		log.Printf("status code error: %d %s", res.StatusCode, res.Status)
-		return
+		return nil
 	}
 
 	buf, _ := ioutil.ReadAll(res.Body)
@@ -46,7 +60,7 @@ func Fetch(ch chan<- []linebot.Response, keyword string) {
 	doc, _ := goquery.NewDocumentFromReader(reader)
 	resp := make([]linebot.Response, 0)
 	doc.Find(".s-expand-height").Each(func(i int, s *goquery.Selection) {
-		if i >= MaxCarouselNum {
+		if i >= client.MaxCarouselNum {
 			return
 		}
 		image, _ := s.Find("img").Attr("src")
@@ -61,19 +75,19 @@ func Fetch(ch chan<- []linebot.Response, keyword string) {
 		} else {
 			_resp.Price = price + "円"
 		}
-		_resp.LinkURL = urlScheme + "://" + amazonUrlHost + linkURL
+		_resp.LinkURL = client.UrlScheme + "://" + urlHost + linkURL
 		_resp.Image = image
 
 		resp = append(resp, _resp)
 	})
 
-	ch <- resp
+	return resp
 }
 
 func createURL(keyword string) string {
 	u := &url.URL{}
-	u.Scheme = urlScheme
-	u.Host = amazonUrlHost
+	u.Scheme = client.UrlScheme
+	u.Host = urlHost
 	u.Path = "s"
 	q := u.Query()
 	q.Set("k", keyword)
