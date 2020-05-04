@@ -11,5 +11,5 @@ const (
 
 type Client interface {
 	GetKind() string
-	Fetch(keyword string) []linebot.Response
+	Fetch(keyword string) *[]linebot.Response
 }

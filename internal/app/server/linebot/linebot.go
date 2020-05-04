@@ -13,7 +13,7 @@ type Response struct {
 	Price   string
 }
 
-func AddSendMessage(kind string, word string, items []Response) []lineBotSDK.SendingMessage {
+func AddSendMessage(kind string, word string, items *[]Response) []lineBotSDK.SendingMessage {
 	var sendMessage []lineBotSDK.SendingMessage
 	sendMessage = append(sendMessage, lineBotSDK.NewTextMessage(kind+"検索結果"))
 	resp, err := parse(kind, word, items)
@@ -26,7 +26,7 @@ func AddSendMessage(kind string, word string, items []Response) []lineBotSDK.Sen
 	return sendMessage
 }
 
-func parse(kind string, keyword string, items []Response) (*lineBotSDK.TemplateMessage, error) {
+func parse(kind string, keyword string, items *[]Response) (*lineBotSDK.TemplateMessage, error) {
 	carouselItems := parseToLineBotFormat(kind, items)
 	if len(carouselItems) == 0 {
 		return nil, fmt.Errorf("no data")
@@ -42,14 +42,14 @@ func parse(kind string, keyword string, items []Response) (*lineBotSDK.TemplateM
 	return resp, nil
 }
 
-func parseToLineBotFormat(kind string, items []Response) []*lineBotSDK.CarouselColumn {
+func parseToLineBotFormat(kind string, items *[]Response) []*lineBotSDK.CarouselColumn {
 	var resp []*lineBotSDK.CarouselColumn
 
 	if items == nil {
 		return resp
 	}
 
-	for _, v := range items {
+	for _, v := range *items {
 		var title string
 		// text の箇所は char 60 を超えると lineBot の仕様上使えないっぽい
 		if len(v.Title) > 57 {

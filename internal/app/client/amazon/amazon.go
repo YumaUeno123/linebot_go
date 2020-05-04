@@ -33,7 +33,7 @@ func (a *amazon) GetKind() string {
 	return a.kind
 }
 
-func (a *amazon) Fetch(keyword string) []linebot.Response {
+func (a *amazon) Fetch(keyword string) *[]linebot.Response {
 	u := createURL(keyword)
 
 	res, err := http.Get(u)
@@ -81,7 +81,7 @@ func (a *amazon) Fetch(keyword string) []linebot.Response {
 		resp = append(resp, _resp)
 	})
 
-	return resp
+	return &resp
 }
 
 func createURL(keyword string) string {

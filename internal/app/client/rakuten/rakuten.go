@@ -35,7 +35,7 @@ func (r *rakuten) GetKind() string {
 	return r.kind
 }
 
-func (r *rakuten) Fetch(keyword string) []linebot.Response {
+func (r *rakuten) Fetch(keyword string) *[]linebot.Response {
 	u := createURL(keyword)
 
 	getResp, err := http.Get(u)
@@ -52,7 +52,7 @@ func (r *rakuten) Fetch(keyword string) []linebot.Response {
 
 	resp := make([]linebot.Response, 0)
 	if len(responseItems.Items) == 0 {
-		return resp
+		return &resp
 	}
 
 	var limit int
@@ -67,15 +67,16 @@ func (r *rakuten) Fetch(keyword string) []linebot.Response {
 		resp = append(resp, parse(&responseItems.Items[i]))
 	}
 
-	return resp
+	return &resp
 }
 
-func parse(responseItem *model.ResponseItem) (resp linebot.Response) {
+func parse(responseItem *model.ResponseItem) linebot.Response {
+	var resp linebot.Response
 	resp.Title = responseItem.Item.ItemName
 	resp.Image = responseItem.Item.MediumImageUrls[0].ImageUrl
 	resp.Price = humanize.Comma(responseItem.Item.ItemPrice) + "円"
 	resp.LinkURL = responseItem.Item.ItemUrl
-	return
+	return resp
 }
 
 func createURL(keyword string) string {
