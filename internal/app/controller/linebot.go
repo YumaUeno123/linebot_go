@@ -53,6 +53,7 @@ func LineBot() {
 			if event.Type == lineBotSDK.EventTypeMessage {
 				switch message := event.Message.(type) {
 				case *lineBotSDK.TextMessage:
+					var mutex = &sync.Mutex{}
 					var sendMessage []lineBotSDK.SendingMessage
 
 					wg := &sync.WaitGroup{}
@@ -60,7 +61,9 @@ func LineBot() {
 						wg.Add(1)
 						go func(client client.Client) {
 							res := client.Fetch(message.Text)
+							mutex.Lock()
 							sendMessage = append(sendMessage, linebot.AddSendMessage(client.GetKind(), message.Text, res)...)
+							mutex.Unlock()
 							wg.Done()
 						}(v)
 					}
@@ -74,7 +77,9 @@ func LineBot() {
 						fmt.Println("fetch success")
 					case <-time.After(5 * time.Second):
 						if len(sendMessage) == 0 {
+							mutex.Lock()
 							sendMessage = append(sendMessage, lineBotSDK.NewTextMessage("問題が発生しました。時間を置いて再度お試しください。"))
+							mutex.Unlock()
 						}
 					}
 
