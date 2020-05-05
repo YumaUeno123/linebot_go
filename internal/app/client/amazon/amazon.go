@@ -59,7 +59,7 @@ func (a *amazon) Fetch(keyword string) *[]linebot.Response {
 
 	doc, _ := goquery.NewDocumentFromReader(reader)
 	resp := make([]linebot.Response, 0)
-	doc.Find(".s-expand-height").Each(func(i int, s *goquery.Selection) {
+	doc.Find(".s-expand-height > .a-section").Each(func(i int, s *goquery.Selection) {
 		if i >= client.MaxCarouselNum {
 			return
 		}
