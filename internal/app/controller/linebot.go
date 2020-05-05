@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	lineBotSDK "github.com/line/line-bot-sdk-go/linebot"
 
@@ -63,7 +64,19 @@ func LineBot() {
 							wg.Done()
 						}(v)
 					}
-					wg.Wait()
+					c := make(chan struct{})
+					go func() {
+						defer close(c)
+						wg.Wait()
+					}()
+					select {
+					case <-c:
+						fmt.Println("fetch success")
+					case <-time.After(5 * time.Second):
+						if len(sendMessage) == 0 {
+							sendMessage = append(sendMessage, lineBotSDK.NewTextMessage("問題が発生しました。時間を置いて再度お試しください。"))
+						}
+					}
 
 					if _, err := bot.ReplyMessage(event.ReplyToken, sendMessage...).Do(); err != nil {
 						log.Print(err)
