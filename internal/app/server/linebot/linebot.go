@@ -13,6 +13,9 @@ type Response struct {
 	Price   string
 }
 
+const rakutenURL = "https://www.rakuten.co.jp/"
+const amazonURL = "https://www.amazon.co.jp/"
+
 func AddSendMessage(kind string, word string, items *[]Response) []lineBotSDK.SendingMessage {
 	var sendMessage []lineBotSDK.SendingMessage
 	sendMessage = append(sendMessage, lineBotSDK.NewTextMessage(kind+"検索結果"))
@@ -61,13 +64,13 @@ func parseToLineBotFormat(kind string, items *[]Response) []*lineBotSDK.Carousel
 		// url の長さは char 1000 を超えると lineBot の仕様上使えないっぽい
 		var label string
 		var url string
-		if len(v.LinkURL) > 1000 {
+		if len(v.LinkURL) > 1000 || len(v.LinkURL) == 0 {
 			if kind == "楽天市場" {
 				label = "楽天市場で確認"
-				url = "https://www.rakuten.co.jp/"
+				url = rakutenURL
 			} else {
 				label = "Amazonで確認"
-				url = "https://www.amazon.co.jp/"
+				url = amazonURL
 			}
 		} else {
 			label = "商品ページ"

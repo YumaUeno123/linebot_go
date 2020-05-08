@@ -2,10 +2,11 @@ package rakuten
 
 import (
 	"encoding/json"
-	"log"
+	"errors"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/dustin/go-humanize"
 
@@ -22,12 +23,14 @@ const (
 )
 
 type rakuten struct {
-	kind string
+	kind      string
+	apiClient client.Api
 }
 
 func New(kind string) client.Client {
 	return &rakuten{
-		kind: kind,
+		kind:      kind,
+		apiClient: client.NewRetry(),
 	}
 }
 
@@ -35,24 +38,29 @@ func (r *rakuten) GetKind() string {
 	return r.kind
 }
 
-func (r *rakuten) Fetch(keyword string) *[]linebot.Response {
+func (r *rakuten) Fetch(keyword string) (*[]linebot.Response, error) {
 	u := createURL(keyword)
+	_resp, err := r.apiClient.Get(u)
 
-	getResp, err := http.Get(u)
 	if err != nil {
-		log.Print(err)
+		return nil, err
 	}
-	defer getResp.Body.Close()
+
+	if _resp.StatusCode != http.StatusOK {
+		return nil, errors.New("http status is " + strconv.Itoa(_resp.StatusCode))
+	}
+
+	defer _resp.Body.Close()
 
 	var responseItems model.APIResponse
 
-	if err := json.NewDecoder(getResp.Body).Decode(&responseItems); err != nil {
-		log.Print(err)
+	if err := json.NewDecoder(_resp.Body).Decode(&responseItems); err != nil {
+		return nil, err
 	}
 
 	resp := make([]linebot.Response, 0)
 	if len(responseItems.Items) == 0 {
-		return &resp
+		return &resp, nil
 	}
 
 	var limit int
@@ -67,7 +75,7 @@ func (r *rakuten) Fetch(keyword string) *[]linebot.Response {
 		resp = append(resp, parse(&responseItems.Items[i]))
 	}
 
-	return &resp
+	return &resp, nil
 }
 
 func parse(responseItem *model.ResponseItem) linebot.Response {

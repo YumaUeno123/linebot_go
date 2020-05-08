@@ -12,7 +12,8 @@ install-tools:
 	mkdir -p bin
 	go install \
 	golang.org/x/tools/cmd/goimports \
-	github.com/golangci/golangci-lint/cmd/golangci-lint
+	github.com/golangci/golangci-lint/cmd/golangci-lint \
+	github.com/golang/mock/mockgen \
 
 install: install-go install-modules install-tools
 
@@ -21,3 +22,8 @@ goimports:
 
 lint:
 	$(GOBIN)/golangci-lint run
+
+mock-gen:
+	$(GOBIN)/mockgen \
+			-source ./internal/app/client/client.go \
+ 			-destination internal/testsupport/mock/client/client_mock.go; \

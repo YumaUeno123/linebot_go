@@ -60,7 +60,10 @@ func LineBot() {
 					for _, v := range clients {
 						wg.Add(1)
 						go func(client client.Client) {
-							res := client.Fetch(message.Text)
+							res, err := client.Fetch(message.Text)
+							if err != nil {
+								fmt.Println(err)
+							}
 							mutex.Lock()
 							sendMessage = append(sendMessage, linebot.AddSendMessage(client.GetKind(), message.Text, res)...)
 							mutex.Unlock()
