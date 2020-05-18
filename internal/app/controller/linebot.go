@@ -65,7 +65,7 @@ func LineBot() {
 								fmt.Println(err)
 							}
 							mutex.Lock()
-							sendMessage = append(sendMessage, linebot.AddSendMessage(client.GetKind(), message.Text, res)...)
+							sendMessage = append(sendMessage, linebot.ParseSendMessage(client.GetKind(), message.Text, res)...)
 							mutex.Unlock()
 							wg.Done()
 						}(v)

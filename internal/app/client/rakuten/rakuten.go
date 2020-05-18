@@ -38,7 +38,7 @@ func (r *rakuten) GetKind() string {
 	return r.kind
 }
 
-func (r *rakuten) Fetch(keyword string) (*[]linebot.Response, error) {
+func (r *rakuten) Fetch(keyword string) ([]linebot.Response, error) {
 	u := createURL(keyword)
 	_resp, err := r.apiClient.Get(u)
 
@@ -60,7 +60,7 @@ func (r *rakuten) Fetch(keyword string) (*[]linebot.Response, error) {
 
 	resp := make([]linebot.Response, 0)
 	if len(responseItems.Items) == 0 {
-		return &resp, nil
+		return resp, nil
 	}
 
 	var limit int
@@ -75,7 +75,7 @@ func (r *rakuten) Fetch(keyword string) (*[]linebot.Response, error) {
 		resp = append(resp, parse(&responseItems.Items[i]))
 	}
 
-	return &resp, nil
+	return resp, nil
 }
 
 func parse(responseItem *model.ResponseItem) linebot.Response {

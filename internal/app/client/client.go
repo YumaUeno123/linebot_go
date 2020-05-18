@@ -15,7 +15,7 @@ type ClientType int
 
 type Client interface {
 	GetKind() string
-	Fetch(keyword string) (*[]linebot.Response, error)
+	Fetch(keyword string) ([]linebot.Response, error)
 }
 
 type Api interface {

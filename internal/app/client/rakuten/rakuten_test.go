@@ -62,7 +62,7 @@ func Test_rakuten_Fetch(t *testing.T) {
 		fields  fields
 		args    args
 		expect  func(*mock_client.MockApi)
-		want    *[]linebot.Response
+		want    []linebot.Response
 		wantErr bool
 	}{
 		{
@@ -71,7 +71,7 @@ func Test_rakuten_Fetch(t *testing.T) {
 			expect: func(mock *mock_client.MockApi) {
 				mock.EXPECT().Get(mockUrl).Return(&http.Response{StatusCode: http.StatusOK, Body: ioutil.NopCloser(noDataResp)}, nil)
 			},
-			want:    &[]linebot.Response{},
+			want:    []linebot.Response{},
 			wantErr: false,
 		},
 		{
@@ -80,7 +80,7 @@ func Test_rakuten_Fetch(t *testing.T) {
 			expect: func(mock *mock_client.MockApi) {
 				mock.EXPECT().Get(mockUrl).Return(&http.Response{StatusCode: http.StatusOK, Body: ioutil.NopCloser(under10itemsResp)}, nil)
 			},
-			want: &[]linebot.Response{
+			want: []linebot.Response{
 				{Title: "mock", Image: "img_mock", Price: "1,000円", LinkURL: "url_mock"},
 			},
 			wantErr: false,
@@ -91,7 +91,7 @@ func Test_rakuten_Fetch(t *testing.T) {
 			expect: func(mock *mock_client.MockApi) {
 				mock.EXPECT().Get(mockUrl).Return(&http.Response{StatusCode: http.StatusOK, Body: ioutil.NopCloser(over10itemsResp)}, nil)
 			},
-			want: &[]linebot.Response{
+			want: []linebot.Response{
 				{Title: "a1", Image: "img_a1", Price: "1,000円", LinkURL: "url_a1"},
 				{Title: "a2", Image: "img_a2", Price: "2,000円", LinkURL: "url_a2"},
 				{Title: "a3", Image: "img_a3", Price: "3,000円", LinkURL: "url_a3"},

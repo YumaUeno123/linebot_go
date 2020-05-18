@@ -1,8 +1,6 @@
 package linebot
 
 import (
-	"fmt"
-
 	lineBotSDK "github.com/line/line-bot-sdk-go/linebot"
 )
 
@@ -13,46 +11,35 @@ type Response struct {
 	Price   string
 }
 
-const rakutenURL = "https://www.rakuten.co.jp/"
-const amazonURL = "https://www.amazon.co.jp/"
+const (
+	rakutenURL = "https://www.rakuten.co.jp/"
+	amazonURL  = "https://www.amazon.co.jp/"
+	noData     = "検索結果がありませんでした"
+)
 
-func AddSendMessage(kind string, word string, items *[]Response) []lineBotSDK.SendingMessage {
+func ParseSendMessage(kind string, keyword string, items []Response) []lineBotSDK.SendingMessage {
 	var sendMessage []lineBotSDK.SendingMessage
 	sendMessage = append(sendMessage, lineBotSDK.NewTextMessage(kind+"検索結果"))
-	resp, err := parse(kind, word, items)
-	if err != nil {
-		sendMessage = append(sendMessage, lineBotSDK.NewTextMessage("検索結果がありませんでした"))
-	} else {
-		sendMessage = append(sendMessage, resp)
+	if len(items) == 0 {
+		sendMessage = append(sendMessage, lineBotSDK.NewTextMessage(noData))
+		return sendMessage
 	}
 
-	return sendMessage
-}
-
-func parse(kind string, keyword string, items *[]Response) (*lineBotSDK.TemplateMessage, error) {
-	carouselItems := parseToLineBotFormat(kind, items)
-	if len(carouselItems) == 0 {
-		return nil, fmt.Errorf("no data")
-	}
-
+	parseItems := parse(kind, items)
 	resp := lineBotSDK.NewTemplateMessage(
 		keyword+"の検索結果",
 		lineBotSDK.NewCarouselTemplate(
-			carouselItems...,
+			parseItems...,
 		),
 	)
-
-	return resp, nil
+	sendMessage = append(sendMessage, resp)
+	return sendMessage
 }
 
-func parseToLineBotFormat(kind string, items *[]Response) []*lineBotSDK.CarouselColumn {
+func parse(kind string, items []Response) []*lineBotSDK.CarouselColumn {
 	var resp []*lineBotSDK.CarouselColumn
 
-	if items == nil {
-		return resp
-	}
-
-	for _, v := range *items {
+	for _, v := range items {
 		var title string
 		// text の箇所は char 60 を超えると lineBot の仕様上使えないっぽい
 		if len(v.Title) > 57 {
