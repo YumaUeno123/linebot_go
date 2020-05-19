@@ -82,7 +82,7 @@ func parse(responseItem *model.ResponseItem) linebot.Response {
 	var resp linebot.Response
 	resp.Title = responseItem.Item.ItemName
 	resp.Image = responseItem.Item.MediumImageUrls[0].ImageUrl
-	resp.Price = humanize.Comma(responseItem.Item.ItemPrice) + "円"
+	resp.Price = humanize.Comma(responseItem.Item.ItemPrice) + "円　ポイント" + strconv.Itoa(responseItem.Item.PointRate) + "倍"
 	resp.LinkURL = responseItem.Item.ItemUrl
 	return resp
 }

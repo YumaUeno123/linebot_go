@@ -26,7 +26,7 @@ var noDataResp = strings.NewReader(`
 var under10itemsResp = strings.NewReader(`
 	{
 		"Items": [
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_mock"}],"itemName": "mock","itemPrice": 1000,"itemUrl": "url_mock"}}
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_mock"}],"itemName": "mock","itemPrice": 1000,"itemUrl": "url_mock", "pointRate": 1}}
 		]
 	}
 `)
@@ -34,17 +34,17 @@ var under10itemsResp = strings.NewReader(`
 var over10itemsResp = strings.NewReader(`
 	{
 		"Items": [
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a1"}],"itemName": "a1","itemPrice": 1000,"itemUrl": "url_a1"}},
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a2"}],"itemName": "a2","itemPrice": 2000,"itemUrl": "url_a2"}},
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a3"}],"itemName": "a3","itemPrice": 3000,"itemUrl": "url_a3"}},
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a4"}],"itemName": "a4","itemPrice": 4000,"itemUrl": "url_a4"}},
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a5"}],"itemName": "a5","itemPrice": 5000,"itemUrl": "url_a5"}},
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a6"}],"itemName": "a6","itemPrice": 6000,"itemUrl": "url_a6"}},
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a7"}],"itemName": "a7","itemPrice": 7000,"itemUrl": "url_a7"}},
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a8"}],"itemName": "a8","itemPrice": 8000,"itemUrl": "url_a8"}},
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a9"}],"itemName": "a9","itemPrice": 9000,"itemUrl": "url_a9"}},
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a10"}],"itemName": "a10","itemPrice": 10000,"itemUrl": "url_a10"}},
-			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a11"}],"itemName": "a11","itemPrice": 11000,"itemUrl": "url_a11"}}
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a1"}],"itemName": "a1","itemPrice": 1000,"itemUrl": "url_a1", "pointRate": 1}},
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a2"}],"itemName": "a2","itemPrice": 2000,"itemUrl": "url_a2", "pointRate": 2}},
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a3"}],"itemName": "a3","itemPrice": 3000,"itemUrl": "url_a3", "pointRate": 3}},
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a4"}],"itemName": "a4","itemPrice": 4000,"itemUrl": "url_a4", "pointRate": 4}},
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a5"}],"itemName": "a5","itemPrice": 5000,"itemUrl": "url_a5", "pointRate": 5}},
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a6"}],"itemName": "a6","itemPrice": 6000,"itemUrl": "url_a6", "pointRate": 6}},
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a7"}],"itemName": "a7","itemPrice": 7000,"itemUrl": "url_a7", "pointRate": 7}},
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a8"}],"itemName": "a8","itemPrice": 8000,"itemUrl": "url_a8", "pointRate": 8}},
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a9"}],"itemName": "a9","itemPrice": 9000,"itemUrl": "url_a9", "pointRate": 9}},
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a10"}],"itemName": "a10","itemPrice": 10000,"itemUrl": "url_a10", "pointRate": 10}},
+			{"Item": {"mediumImageUrls": [{"imageUrl": "img_a11"}],"itemName": "a11","itemPrice": 11000,"itemUrl": "url_a11", "pointRate": 11}}
 		]
 	}
 `)
@@ -81,7 +81,7 @@ func Test_rakuten_Fetch(t *testing.T) {
 				mock.EXPECT().Get(mockUrl).Return(&http.Response{StatusCode: http.StatusOK, Body: ioutil.NopCloser(under10itemsResp)}, nil)
 			},
 			want: []linebot.Response{
-				{Title: "mock", Image: "img_mock", Price: "1,000円", LinkURL: "url_mock"},
+				{Title: "mock", Image: "img_mock", Price: "1,000円　ポイント1倍", LinkURL: "url_mock"},
 			},
 			wantErr: false,
 		},
@@ -92,16 +92,16 @@ func Test_rakuten_Fetch(t *testing.T) {
 				mock.EXPECT().Get(mockUrl).Return(&http.Response{StatusCode: http.StatusOK, Body: ioutil.NopCloser(over10itemsResp)}, nil)
 			},
 			want: []linebot.Response{
-				{Title: "a1", Image: "img_a1", Price: "1,000円", LinkURL: "url_a1"},
-				{Title: "a2", Image: "img_a2", Price: "2,000円", LinkURL: "url_a2"},
-				{Title: "a3", Image: "img_a3", Price: "3,000円", LinkURL: "url_a3"},
-				{Title: "a4", Image: "img_a4", Price: "4,000円", LinkURL: "url_a4"},
-				{Title: "a5", Image: "img_a5", Price: "5,000円", LinkURL: "url_a5"},
-				{Title: "a6", Image: "img_a6", Price: "6,000円", LinkURL: "url_a6"},
-				{Title: "a7", Image: "img_a7", Price: "7,000円", LinkURL: "url_a7"},
-				{Title: "a8", Image: "img_a8", Price: "8,000円", LinkURL: "url_a8"},
-				{Title: "a9", Image: "img_a9", Price: "9,000円", LinkURL: "url_a9"},
-				{Title: "a10", Image: "img_a10", Price: "10,000円", LinkURL: "url_a10"},
+				{Title: "a1", Image: "img_a1", Price: "1,000円　ポイント1倍", LinkURL: "url_a1"},
+				{Title: "a2", Image: "img_a2", Price: "2,000円　ポイント2倍", LinkURL: "url_a2"},
+				{Title: "a3", Image: "img_a3", Price: "3,000円　ポイント3倍", LinkURL: "url_a3"},
+				{Title: "a4", Image: "img_a4", Price: "4,000円　ポイント4倍", LinkURL: "url_a4"},
+				{Title: "a5", Image: "img_a5", Price: "5,000円　ポイント5倍", LinkURL: "url_a5"},
+				{Title: "a6", Image: "img_a6", Price: "6,000円　ポイント6倍", LinkURL: "url_a6"},
+				{Title: "a7", Image: "img_a7", Price: "7,000円　ポイント7倍", LinkURL: "url_a7"},
+				{Title: "a8", Image: "img_a8", Price: "8,000円　ポイント8倍", LinkURL: "url_a8"},
+				{Title: "a9", Image: "img_a9", Price: "9,000円　ポイント9倍", LinkURL: "url_a9"},
+				{Title: "a10", Image: "img_a10", Price: "10,000円　ポイント10倍", LinkURL: "url_a10"},
 			},
 			wantErr: false,
 		},
